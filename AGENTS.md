@@ -18,6 +18,7 @@ TradingAgents is a single Python package (no separate frontend/backend). It ship
 ### Non-obvious gotchas
 
 - Running an actual analysis requires an LLM provider API key (e.g. `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, ...). Without one, the CLI walks through ticker/date/analyst/depth/provider selection and then stops at the API-key prompt; the library raises when constructing the LLM client. Set the key as an env var or in a `.env` file (`cp .env.example .env`). No key is bundled.
+- The default model IDs in `tradingagents/default_config.py` / the model catalog are forward-dated (e.g. `gpt-5.5`, `gpt-5.4-mini`) and may not exist for a given real API key — a run then fails with a model-not-found error (unknown-model is only a `RuntimeWarning`, not the failure). Override to a model the key can actually serve, without editing code, via `TRADINGAGENTS_DEEP_THINK_LLM` / `TRADINGAGENTS_QUICK_THINK_LLM` (and set `TRADINGAGENTS_OPENAI_REASONING_EFFORT=low` to keep reasoning-model runs fast/cheap). A full run over 4 analysts + debate/risk rounds takes a few minutes and makes many LLM + data calls.
 - Market/data flows (yfinance, etc.) hit the live network and need no key — e.g. `python test.py` fetches real indicator data and is a good keyless smoke check.
 - Optional AWS Bedrock support needs the extra: `pip install -e ".[bedrock]"`.
 - Runtime state persists under `~/.tradingagents/` (decision log + checkpoint SQLite DBs); override with `TRADINGAGENTS_MEMORY_LOG_PATH` / `TRADINGAGENTS_CACHE_DIR`.
