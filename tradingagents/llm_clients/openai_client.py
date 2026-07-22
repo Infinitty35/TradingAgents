@@ -224,6 +224,16 @@ OPENAI_COMPATIBLE_PROVIDERS: dict[str, ProviderSpec] = {
     "kimi":       ProviderSpec(base_url="https://api.moonshot.ai/v1"),
     "groq":       ProviderSpec(base_url="https://api.groq.com/openai/v1"),
     "nvidia":     ProviderSpec(base_url="https://integrate.api.nvidia.com/v1"),
+    # Additional hosted OpenAI-compatible inference providers. All speak the
+    # standard Chat Completions API and serve many (and frequently-changing)
+    # model IDs, so the model is user-specified (see model_catalog._CUSTOM_ONLY
+    # and validators._ANY_MODEL_PROVIDERS).
+    "perplexity": ProviderSpec(base_url="https://api.perplexity.ai"),
+    "together":   ProviderSpec(base_url="https://api.together.xyz/v1"),
+    "fireworks":  ProviderSpec(base_url="https://api.fireworks.ai/inference/v1"),
+    "deepinfra":  ProviderSpec(base_url="https://api.deepinfra.com/v1/openai"),
+    "cerebras":   ProviderSpec(base_url="https://api.cerebras.ai/v1"),
+    "sambanova":  ProviderSpec(base_url="https://api.sambanova.ai/v1"),
     "ollama":     ProviderSpec(base_url="http://localhost:11434/v1", base_url_env="OLLAMA_BASE_URL",
                                key_optional=True, placeholder_key="ollama"),
     # Generic endpoint: user supplies base_url; key optional (keyless local).

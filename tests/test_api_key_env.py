@@ -43,6 +43,12 @@ def test_every_select_llm_provider_choice_has_an_entry():
         ("minimax",    "MINIMAX_API_KEY"),
         ("minimax-cn", "MINIMAX_CN_API_KEY"),
         ("openrouter", "OPENROUTER_API_KEY"),
+        ("perplexity", "PERPLEXITY_API_KEY"),
+        ("together",   "TOGETHER_API_KEY"),
+        ("fireworks",  "FIREWORKS_API_KEY"),
+        ("deepinfra",  "DEEPINFRA_API_KEY"),
+        ("cerebras",   "CEREBRAS_API_KEY"),
+        ("sambanova",  "SAMBANOVA_API_KEY"),
     ],
 )
 def test_known_providers_resolve(provider, env_var):
