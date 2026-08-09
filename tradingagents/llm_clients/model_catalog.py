@@ -186,6 +186,16 @@ MODEL_OPTIONS: ProviderModeOptions = {
     "kimi": _CUSTOM_ONLY,
     "groq": _CUSTOM_ONLY,
     "nvidia": _CUSTOM_ONLY,
+    # Additional hosted OpenAI-compatible providers serving many / frequently
+    # changing models — offer "Custom model ID" rather than a list that goes
+    # stale. The endpoint + key are wired by the provider registry; the user
+    # picks the model their account has access to.
+    "perplexity": _CUSTOM_ONLY,
+    "together": _CUSTOM_ONLY,
+    "fireworks": _CUSTOM_ONLY,
+    "deepinfra": _CUSTOM_ONLY,
+    "cerebras": _CUSTOM_ONLY,
+    "sambanova": _CUSTOM_ONLY,
     # Bedrock model IDs / cross-region inference profile IDs are user-specified.
     "bedrock": _CUSTOM_ONLY,
 }

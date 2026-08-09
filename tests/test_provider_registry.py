@@ -39,6 +39,12 @@ def test_registry_membership():
     ("kimi", "https://api.moonshot.ai/v1", NormalizedChatOpenAI, False),
     ("groq", "https://api.groq.com/openai/v1", NormalizedChatOpenAI, False),
     ("nvidia", "https://integrate.api.nvidia.com/v1", NormalizedChatOpenAI, False),
+    ("perplexity", "https://api.perplexity.ai", NormalizedChatOpenAI, False),
+    ("together", "https://api.together.xyz/v1", NormalizedChatOpenAI, False),
+    ("fireworks", "https://api.fireworks.ai/inference/v1", NormalizedChatOpenAI, False),
+    ("deepinfra", "https://api.deepinfra.com/v1/openai", NormalizedChatOpenAI, False),
+    ("cerebras", "https://api.cerebras.ai/v1", NormalizedChatOpenAI, False),
+    ("sambanova", "https://api.sambanova.ai/v1", NormalizedChatOpenAI, False),
     ("ollama", "http://localhost:11434/v1", NormalizedChatOpenAI, False),
 ])
 def test_registry_spec(provider, base_url, chat_class, responses):
@@ -55,5 +61,9 @@ def test_key_optionality():
     assert OPENAI_COMPATIBLE_PROVIDERS["openai_compatible"].key_optional is True
     assert OPENAI_COMPATIBLE_PROVIDERS["openai_compatible"].require_base_url is True
     assert OPENAI_COMPATIBLE_PROVIDERS["xai"].key_optional is False
+    # Hosted third-party providers require a key like any other hosted API.
+    for provider in ("perplexity", "together", "fireworks", "deepinfra", "cerebras", "sambanova"):
+        assert OPENAI_COMPATIBLE_PROVIDERS[provider].key_optional is False
+        assert OPENAI_COMPATIBLE_PROVIDERS[provider].require_base_url is False
     # OLLAMA_BASE_URL is the only base-URL env override.
     assert OPENAI_COMPATIBLE_PROVIDERS["ollama"].base_url_env == "OLLAMA_BASE_URL"
