@@ -35,6 +35,16 @@ PROVIDER_API_KEY_ENV: dict[str, str | None] = {
     "kimi":       "MOONSHOT_API_KEY",
     "groq":       "GROQ_API_KEY",
     "nvidia":     "NVIDIA_API_KEY",
+    # Additional hosted OpenAI-compatible inference providers (model is
+    # user-specified). perplexity -> Perplexity Sonar; together -> Together AI;
+    # fireworks -> Fireworks AI; deepinfra -> DeepInfra; cerebras -> Cerebras;
+    # sambanova -> SambaNova Cloud.
+    "perplexity": "PERPLEXITY_API_KEY",
+    "together":   "TOGETHER_API_KEY",
+    "fireworks":  "FIREWORKS_API_KEY",
+    "deepinfra":  "DEEPINFRA_API_KEY",
+    "cerebras":   "CEREBRAS_API_KEY",
+    "sambanova":  "SAMBANOVA_API_KEY",
     # Local runtimes do not authenticate.
     "ollama":     None,
     # Generic OpenAI-compatible endpoint: the client reads this when set (keyed
