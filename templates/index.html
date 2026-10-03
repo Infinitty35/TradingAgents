@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradingAgents — Multi-Agent LLM Trading Framework</title>
+    <style>
+        :root {
+            --bg: #0a0e1a;
+            --card: #131826;
+            --card-hover: #1a2033;
+            --border: #1e293b;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --accent: #10b981;
+            --accent-hover: #059669;
+            --accent-dim: #064e3b;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
+
+        /* Header */
+        header { text-align: center; padding: 40px 0 30px; }
+        header h1 {
+            font-size: 2.2rem; font-weight: 700; letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--accent), #34d399);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        header p { color: var(--muted); margin-top: 8px; font-size: 1.05rem; }
+        .workflow-steps {
+            display: flex; justify-content: center; gap: 8px; margin-top: 20px;
+            flex-wrap: wrap; font-size: 0.82rem; color: var(--muted);
+        }
+        .workflow-steps span {
+            padding: 4px 12px; border-radius: 20px; background: var(--card);
+            border: 1px solid var(--border);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 28px; margin-bottom: 24px;
+        }
+        .card h2 {
+            font-size: 1.15rem; margin-bottom: 20px; color: var(--text);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .card h2::before {
+            content: ""; width: 4px; height: 18px; background: var(--accent);
+            border-radius: 2px;
+        }
+
+        /* Form */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+        label { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+        input, select {
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 8px; padding: 10px 14px; color: var(--text);
+            font-size: 0.95rem; outline: none; transition: border-color 0.2s;
+        }
+        input:focus, select:focus { border-color: var(--accent); }
+        input::placeholder { color: #475569; }
+
+        /* Checkboxes */
+        .checkbox-group { display: flex; gap: 12px; flex-wrap: wrap; }
+        .checkbox-group label {
+            display: flex; align-items: center; gap: 6px; cursor: pointer;
+            padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px;
+            background: var(--bg); font-size: 0.9rem; color: var(--text);
+            transition: all 0.2s;
+        }
+        .checkbox-group label:hover { border-color: var(--accent); }
+        .checkbox-group input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; }
+        .checkbox-group label.checked { border-color: var(--accent); background: var(--accent-dim); }
+
+        /* Provider key status */
+        .key-status { font-size: 0.78rem; margin-top: 4px; }
+        .key-status.ok { color: var(--accent); }
+        .key-status.missing { color: var(--warning); }
+
+        /* Button */
+        .btn {
+            background: var(--accent); color: #fff; border: none; border-radius: 10px;
+            padding: 14px 28px; font-size: 1rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; width: 100%; margin-top: 8px;
+        }
+        .btn:hover:not(:disabled) { background: var(--accent-hover); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Status / loading */
+        #status-section { text-align: center; padding: 40px 28px; }
+        .spinner {
+            width: 44px; height: 44px; border: 4px solid var(--border);
+            border-top-color: var(--accent); border-radius: 50%;
+            animation: spin 0.8s linear infinite; margin: 0 auto 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #status-text { color: var(--muted); font-size: 1rem; }
+        .elapsed { font-size: 0.82rem; color: #475569; margin-top: 6px; }
+
+        /* Results */
+        .rating-badge {
+            display: inline-block; padding: 8px 24px; border-radius: 10px;
+            font-size: 1.3rem; font-weight: 700; margin-bottom: 16px;
+        }
+        .rating-Buy, .rating-Overweight { background: #064e3b; color: #34d399; }
+        .rating-Hold { background: #1e3a5f; color: #60a5fa; }
+        .rating-Underweight, .rating-Sell { background: #4c1d1d; color: #f87171; }
+        .rating-REVIEW { background: #422006; color: #fbbf24; }
+
+        .report-section {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 10px; margin-bottom: 12px; overflow: hidden;
+        }
+        .report-section summary {
+            padding: 14px 20px; cursor: pointer; font-weight: 600;
+            font-size: 0.95rem; list-style: none; display: flex;
+            align-items: center; justify-content: space-between;
+            transition: background 0.2s;
+        }
+        .report-section summary::-webkit-details-marker { display: none; }
+        .report-section summary::after {
+            content: "▸"; color: var(--muted); transition: transform 0.2s;
+        }
+        .report-section[open] summary::after { transform: rotate(90deg); }
+        .report-section summary:hover { background: var(--card-hover); }
+        .report-body {
+            padding: 0 20px 16px; font-size: 0.9rem; color: var(--muted);
+            line-height: 1.7; white-space: pre-wrap; max-height: 500px;
+            overflow-y: auto;
+        }
+        .report-body h1, .report-body h2, .report-body h3, .report-body h4 {
+            color: var(--text); margin: 12px 0 6px; white-space: normal;
+        }
+        .report-body strong { color: var(--text); }
+        .report-body ul { padding-left: 20px; }
+        .report-body li { margin: 2px 0; }
+
+        /* Error */
+        .error-box {
+            background: #1a0f0f; border: 1px solid #4c1d1d; border-radius: 10px;
+            padding: 20px; margin-bottom: 16px;
+        }
+        .error-box h3 { color: var(--error); margin-bottom: 8px; }
+        .error-box pre {
+            font-size: 0.82rem; color: var(--muted); white-space: pre-wrap;
+            margin-top: 10px; max-height: 300px; overflow-y: auto;
+        }
+
+        /* New analysis button */
+        .new-analysis {
+            text-align: center; margin-top: 24px;
+        }
+        .btn-secondary {
+            background: var(--card); color: var(--text); border: 1px solid var(--border);
+            border-radius: 10px; padding: 12px 28px; font-size: 0.95rem;
+            font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-secondary:hover { border-color: var(--accent); background: var(--card-hover); }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 640px) {
+            .form-grid { grid-template-columns: 1fr; }
+            header h1 { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>TradingAgents</h1>
+            <p>Multi-Agents LLM Financial Trading Framework</p>
+            <div class="workflow-steps">
+                <span>Analyst Team</span>
+                <span>→</span>
+                <span>Research Team</span>
+                <span>→</span>
+                <span>Trader</span>
+                <span>→</span>
+                <span>Risk Management</span>
+                <span>→</span>
+                <span>Portfolio Manager</span>
+            </div>
+        </header>
+
+        <!-- Form -->
+        <section id="form-section" class="card">
+            <h2>Run Analysis</h2>
+            <form id="analysis-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="ticker">Ticker Symbol</label>
+                        <input type="text" id="ticker" name="ticker" placeholder="e.g. NVDA, AAPL, BTC-USD" value="NVDA" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Analysis Date</label>
+                        <input type="date" id="date" name="date" required>
+                    </div>
+                    <div class="form-group full">
+                        <label>Analysts</label>
+                        <div class="checkbox-group" id="analysts-group">
+                            <label><input type="checkbox" value="market" checked> Market</label>
+                            <label><input type="checkbox" value="social" checked> Sentiment</label>
+                            <label><input type="checkbox" value="news" checked> News</label>
+                            <label><input type="checkbox" value="fundamentals" checked> Fundamentals</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="provider">LLM Provider</label>
+                        <select id="provider" name="provider"></select>
+                        <div class="key-status" id="key-status"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="depth">Research Depth</label>
+                        <select id="depth" name="depth">
+                            <option value="1">Shallow (1 round)</option>
+                            <option value="3">Medium (3 rounds)</option>
+                            <option value="5">Deep (5 rounds)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="quick-model">Quick-Thinking Model</label>
+                        <select id="quick-model" name="quick-model"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="deep-model">Deep-Thinking Model</label>
+                        <select id="deep-model" name="deep-model"></select>
+                    </div>
+                </div>
+                <button type="submit" class="btn" id="run-btn">Run Analysis</button>
+            </form>
+        </section>
+
+        <!-- Status -->
+        <section id="status-section" class="card hidden">
+            <div class="spinner"></div>
+            <p id="status-text">Starting analysis...</p>
+            <p class="elapsed" id="elapsed-time"></p>
+        </section>
+
+        <!-- Error -->
+        <section id="error-section" class="hidden">
+            <div class="error-box">
+                <h3>Analysis Failed</h3>
+                <p id="error-message"></p>
+                <details><summary>Details</summary><pre id="error-traceback"></pre></details>
+            </div>
+            <div class="new-analysis">
+                <button class="btn-secondary" onclick="resetUI()">New Analysis</button>
+            </div>
+        </section>
+
+        <!-- Results -->
+        <section id="results-section" class="hidden">
+            <div class="card" style="text-align: center;">
+                <h2 style="justify-content: center;">Final Decision</h2>
+                <div id="rating-badge" class="rating-badge"></div>
+                <div id="final-decision" style="text-align: left; margin-top: 16px; font-size: 0.92rem; color: var(--muted); white-space: pre-wrap; line-height: 1.7;"></div>
+            </div>
+            <div id="report-sections"></div>
+            <div class="new-analysis">
+                <button class="btn-secondary" onclick="resetUI()">New Analysis</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        let pollTimer = null;
+        let startTime = null;
+
+        // --- Init ---
+        async function init() {
+            const today = new Date().toISOString().split('T')[0];
+            $('date').value = today;
+            $('date').max = today;
+
+            // Load providers
+            const resp = await fetch('/api/providers');
+            const providers = await resp.json();
+            const sel = $('provider');
+            providers.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.key;
+                opt.textContent = p.name + (p.has_key ? '' : ' (no API key)');
+                sel.appendChild(opt);
+            });
+
+            // Load models for first provider
+            await loadModels(providers[0].key);
+            updateKeyStatus(providers[0]);
+
+            // Checkbox visual state
+            document.querySelectorAll('#analysts-group input[type=checkbox]').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    cb.parentElement.classList.toggle('checked', cb.checked);
+                });
+                cb.parentElement.classList.toggle('checked', cb.checked);
+            });
+
+            // Ticker change: hide fundamentals for crypto
+            $('ticker').addEventListener('input', toggleFundamentals);
+        }
+
+        function toggleFundamentals() {
+            const ticker = $('ticker').value.toUpperCase();
+            const cryptoSuffixes = ['-USD', '-USDT', '-USDC', '-BTC', '-ETH'];
+            const isCrypto = cryptoSuffixes.some(s => ticker.endsWith(s));
+            const fundLabel = document.querySelector('#analysts-group input[value=fundamentals]').parentElement;
+            const fundInput = fundLabel.querySelector('input');
+            if (isCrypto) {
+                fundLabel.style.display = 'none';
+                fundInput.checked = false;
+                fundLabel.classList.remove('checked');
+            } else {
+                fundLabel.style.display = '';
+                fundInput.checked = true;
+                fundLabel.classList.add('checked');
+            }
+        }
+
+        // --- Provider change ---
+        $('provider').addEventListener('change', async function() {
+            await loadModels(this.value);
+            const resp = await fetch('/api/providers');
+            const providers = await resp.json();
+            const p = providers.find(x => x.key === this.value);
+            updateKeyStatus(p);
+        });
+
+        async function loadModels(provider) {
+            const resp = await fetch(`/api/models/${provider}`);
+            const data = await resp.json();
+            fillSelect($('quick-model'), data.quick);
+            fillSelect($('deep-model'), data.deep);
+        }
+
+        function fillSelect(sel, options) {
+            sel.innerHTML = '';
+            options.forEach(opt => {
+                const o = document.createElement('option');
+                o.value = opt.value;
+                o.textContent = opt.label;
+                sel.appendChild(o);
+            });
+        }
+
+        function updateKeyStatus(p) {
+            const el = $('key-status');
+            if (!p) return;
+            if (p.key_env === null) {
+                el.textContent = 'No API key required';
+                el.className = 'key-status ok';
+            } else if (p.has_key) {
+                el.textContent = `✓ ${p.key_env} is set`;
+                el.className = 'key-status ok';
+            } else {
+                el.textContent = `⚠ ${p.key_env} is not set — add it in the Base44 secrets dashboard`;
+                el.className = 'key-status missing';
+            }
+        }
+
+        // --- Form submit ---
+        $('analysis-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const analysts = Array.from(document.querySelectorAll('#analysts-group input:checked'))
+                .map(cb => cb.value);
+            if (analysts.length === 0) { alert('Select at least one analyst.'); return; }
+
+            const payload = {
+                ticker: $('ticker').value,
+                date: $('date').value,
+                analysts,
+                provider: $('provider').value,
+                quick_model: $('quick-model').value === 'custom' ? prompt('Enter quick model ID:') : $('quick-model').value,
+                deep_model: $('deep-model').value === 'custom' ? prompt('Enter deep model ID:') : $('deep-model').value,
+                research_depth: parseInt($('depth').value),
+            };
+
+            $('run-btn').disabled = true;
+            $('form-section').classList.add('hidden');
+            $('status-section').classList.remove('hidden');
+            $('results-section').classList.add('hidden');
+            $('error-section').classList.add('hidden');
+            $('status-text').textContent = `Analyzing ${payload.ticker} on ${payload.date}...`;
+            startTime = Date.now();
+
+            try {
+                const resp = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await resp.json();
+                if (!resp.ok) {
+                    showError(data.error || 'Failed to start analysis');
+                    return;
+                }
+                pollStatus(data.task_id);
+            } catch (err) {
+                showError(err.message);
+            }
+        });
+
+        function pollStatus(taskId) {
+            if (pollTimer) clearInterval(pollTimer);
+            const elapsedEl = $('elapsed-time');
+
+            pollTimer = setInterval(async () => {
+                const elapsed = Math.round((Date.now() - startTime) / 1000);
+                elapsedEl.textContent = `Elapsed: ${elapsed}s`;
+
+                try {
+                    const resp = await fetch(`/api/status/${taskId}`);
+                    const data = await resp.json();
+                    if (data.status === 'completed') {
+                        clearInterval(pollTimer); pollTimer = null;
+                        await showResults(taskId);
+                    } else if (data.status === 'failed') {
+                        clearInterval(pollTimer); pollTimer = null;
+                        showError(data.error, data.traceback);
+                    }
+                } catch (e) { /* retry on next tick */ }
+            }, 2000);
+        }
+
+        async function showResults(taskId) {
+            const resp = await fetch(`/api/result/${taskId}`);
+            const data = await resp.json();
+            const r = data.result;
+            const signal = data.signal || 'REVIEW';
+
+            $('status-section').classList.add('hidden');
+            $('results-section').classList.remove('hidden');
+
+            // Rating badge
+            const badge = $('rating-badge');
+            badge.textContent = signal;
+            badge.className = 'rating-badge rating-' + signal;
+
+            // Final decision
+            $('final-decision').textContent = r.final_trade_decision || '(no decision text)';
+
+            // Report sections
+            const sections = $('report-sections');
+            sections.innerHTML = '';
+
+            const reports = [
+                { title: 'Market Analyst', content: r.market_report },
+                { title: 'Sentiment Analyst', content: r.sentiment_report },
+                { title: 'News Analyst', content: r.news_report },
+                { title: 'Fundamentals Analyst', content: r.fundamentals_report },
+            ];
+            reports.forEach(rep => {
+                if (rep.content) addSection(sections, rep.title, rep.content);
+            });
+
+            // Research debate
+            const debate = r.investment_debate_state || {};
+            let debateContent = '';
+            if (debate.bull_history) debateContent += `### Bull Researcher\n${debate.bull_history}\n\n`;
+            if (debate.bear_history) debateContent += `### Bear Researcher\n${debate.bear_history}\n\n`;
+            if (r.investment_plan) debateContent += `### Research Manager\n${r.investment_plan}`;
+            if (debateContent) addSection(sections, 'Research Team Decision', debateContent);
+
+            // Trader
+            if (r.trader_investment_plan)
+                addSection(sections, 'Trading Team Plan', r.trader_investment_plan);
+
+            // Risk debate
+            const risk = r.risk_debate_state || {};
+            let riskContent = '';
+            if (risk.aggressive_history) riskContent += `### Aggressive Analyst\n${risk.aggressive_history}\n\n`;
+            if (risk.conservative_history) riskContent += `### Conservative Analyst\n${risk.conservative_history}\n\n`;
+            if (risk.neutral_history) riskContent += `### Neutral Analyst\n${risk.neutral_history}\n\n`;
+            if (riskContent) addSection(sections, 'Risk Management Team Decision', riskContent);
+        }
+
+        function addSection(container, title, content) {
+            const det = document.createElement('details');
+            det.className = 'report-section';
+            const sum = document.createElement('summary');
+            sum.textContent = title;
+            det.appendChild(sum);
+            const body = document.createElement('div');
+            body.className = 'report-body';
+            body.textContent = content;
+            det.appendChild(body);
+            container.appendChild(det);
+        }
+
+        function showError(msg, tb) {
+            $('status-section').classList.add('hidden');
+            $('error-section').classList.remove('hidden');
+            $('error-message').textContent = msg || 'Unknown error';
+            if (tb) $('error-traceback').textContent = tb;
+        }
+
+        function resetUI() {
+            $('form-section').classList.remove('hidden');
+            $('status-section').classList.add('hidden');
+            $('results-section').classList.add('hidden');
+            $('error-section').classList.add('hidden');
+            $('run-btn').disabled = false;
+            if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+        }
+
+        init();
+    </script>
+</body>
+</html>
