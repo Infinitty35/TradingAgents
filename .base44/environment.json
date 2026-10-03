@@ -19,6 +19,11 @@
       "requiredAtBoot": false
     },
     {
+      "name": "DEEPSEEK_API_KEY",
+      "description": "DeepSeek API key — alternative LLM provider. Get it from https://platform.deepseek.com/api_keys",
+      "requiredAtBoot": false
+    },
+    {
       "name": "FRED_API_KEY",
       "description": "FRED (Federal Reserve) macro data API key. Free at https://fred.stlouisfed.org/docs/api/api_key.html",
       "requiredAtBoot": false
