@@ -1,0 +1,32 @@
+{
+  "previewPort": 3000,
+  "healthPath": "/health",
+  "startCommand": "docker compose -f docker-compose.base44.yml up -d",
+  "secrets": [
+    {
+      "name": "OPENAI_API_KEY",
+      "description": "OpenAI API key — the default LLM provider. Get it from https://platform.openai.com/api-keys",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "GOOGLE_API_KEY",
+      "description": "Google Gemini API key. Get it from https://aistudio.google.com/apikey",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "ANTHROPIC_API_KEY",
+      "description": "Anthropic Claude API key. Get it from https://console.anthropic.com/settings/keys",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "DEEPSEEK_API_KEY",
+      "description": "DeepSeek API key — alternative LLM provider. Get it from https://platform.deepseek.com/api_keys",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "FRED_API_KEY",
+      "description": "FRED (Federal Reserve) macro data API key. Free at https://fred.stlouisfed.org/docs/api/api_key.html",
+      "requiredAtBoot": false
+    }
+  ]
+}
