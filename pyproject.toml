@@ -38,15 +38,22 @@ dev = [
 bedrock = [
     "langchain-aws>=1.7.9",
 ]
+# HTTP API (FastAPI + uvicorn). Optional so the core install stays lean:
+# pip install "tradingagents[api]".
+api = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+]
 
 [project.scripts]
 tradingagents = "cli.main:app"
+tradingagents-api = "api.__main__:main"
 
 [tool.setuptools.dynamic]
 version = {attr = "tradingagents.__version__"}
 
 [tool.setuptools.packages.find]
-include = ["tradingagents*", "cli*"]
+include = ["tradingagents*", "cli*", "api*"]
 
 [tool.setuptools.package-data]
 cli = ["static/*"]
