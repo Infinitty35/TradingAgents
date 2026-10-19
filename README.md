@@ -314,6 +314,53 @@ The CLI takes the same content as a JSON file: `tradingagents --portfolio my_boo
 
 An empty `positions` list means a flat book, which is different from passing nothing. A run without a portfolio is never treated as flat.
 
+## HTTP API
+
+Install the API extra and start the server:
+
+```bash
+pip install ".[api]"
+tradingagents-api          # installed command; python -m api runs it from source
+```
+
+The server reads the same `.env` and `TRADINGAGENTS_*` variables as the CLI, so LLM keys and model choices need no extra setup. It binds to `127.0.0.1:8000` by default; set `TRADINGAGENTS_API_HOST` / `TRADINGAGENTS_API_PORT` to change that. Interactive docs are served at `/docs`.
+
+Set `TRADINGAGENTS_API_TOKEN` to require `Authorization: Bearer <token>` on every request. Without it the API has no authentication — keep it on localhost or behind your own gateway.
+
+Analyses and backtests take minutes, so they run as background jobs: submit with `POST`, then poll the job or stream its progress over server-sent events.
+
+```bash
+# Run one analysis; returns a job id immediately
+curl -s localhost:8000/analyze -H 'Content-Type: application/json' -d '{
+  "ticker": "NVDA", "date": "2026-09-23",
+  "analysts": ["market", "news", "fundamentals"],
+  "portfolio": {"cash": 25000, "currency": "USD",
+                "positions": [{"ticker": "NVDA", "quantity": 120, "average_price": 150}]},
+  "config": {"llm_provider": "openai", "max_debate_rounds": 1}
+}'
+# -> {"id": "...", "kind": "analyze", "status": "running", ...}
+
+# Poll until done, then read the decision and reports
+curl -s localhost:8000/jobs/<id>
+
+# Or stream progress as server-sent events
+curl -N localhost:8000/jobs/<id>/events
+
+# Run a backtest sweep over a ticker x date grid
+curl -s localhost:8000/backtest -H 'Content-Type: application/json' -d '{
+  "tickers": ["NVDA", "AAPL"], "start": "2026-06-01", "end": "2026-08-01", "every": 7
+}'
+
+# Cancel a queued or running job
+curl -X POST localhost:8000/jobs/<id>/cancel
+```
+
+Read-only endpoints: `GET /health`, `GET /providers` (LLM providers, whether each API key is configured, curated models — key values are never returned), `GET /config` (the server's effective run settings), `GET /history` (the memory log, filterable with `?ticker=`), `GET /reports` (saved report trees), `GET /reports/content?path=...` (one saved report as markdown; paths outside the results directory are refused).
+
+Per-run overrides in `POST /analyze` and `POST /backtest` accept a `config` object with `llm_provider`, `deep_think_llm`, `quick_think_llm`, `backend_url`, `output_language`, `max_debate_rounds`, `max_risk_discuss_rounds`, `max_tool_rounds`, `temperature`, `llm_max_retries`, `max_tokens`, and `checkpoint_enabled`. Unknown keys are rejected.
+
+Jobs live in the server process: a restart forgets them, and a queued job is not persisted. Reports, the memory log and the cache are written to the same locations the CLI uses, so API runs and CLI runs share them.
+
 ## Persistence and Recovery
 
 TradingAgents persists two kinds of state across runs.
